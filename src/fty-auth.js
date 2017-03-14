@@ -1,28 +1,42 @@
-var ftyToken = "";
+var ftyAuth = {
+    token: null,
+    user: "",
+    pass: "",
+    onLogin: null,
+    onLoginFail: null,
 
-function ftyDoLogin () {
-    var user = $("#userName").val();
-    var pass = $("#userPassword").val();
-    console.log ("cred " + user + " " + pass);
-    data = jQuery.param({ username: user, password: pass, grant_type : "password" });
-    console.log ("data " + data);
-    $.ajax ({
-	url: '/api/v1/oauth2/token',
-	type: 'POST',
-	data: JSON.stringify ({ grant_type : "password", username: user, password: pass }),
-	contentType: 'application/json',
-	dataType: "json",
-	success: function (response) {
-	    alert ("ok");
-	    ftyToken = response.access_token;
-	},
-	error: function () {
-	    alert ("error");
-	},
-    });
+    login: function (user, pass) {
+	ftyAuth.token = "";
+	ftyAuth.user = user;
+	ftyAuth.pass = pass;
+	$.ajax ({
+	    url: '/api/v1/oauth2/token',
+	    type: 'POST',
+	    data: JSON.stringify ({ grant_type : "password", username: user, password: pass }),
+	    contentType: 'application/json',
+	    dataType: "json",
+	    success: function (response) {
+		ftyAuth.token = response.access_token;
+		if (ftyAuth.onLogin) ftyAuth.onLogin ();
+	    },
+	    error: function () {
+		if (ftyAuth.onLoginFail) ftyAuth.onLoginFail ();
+	    }
+	});
+    },
+
+    loggedIn: function () {
+	return (ftyAuth.token != null);
+    },
+
+    logout: function () {
+	ftyAuth.token = null;
+	ftyAuth.user = "";
+	ftyAuth.pass = "";
+    }
 }
 
-function ftyLoginPage () {
+function ftyDrawLoginPage () {
     $("#container").html (
 	    '<div class="row">' + 
             '  <div class="col-md-offset-5 col-md-3">' +
@@ -32,17 +46,12 @@ function ftyLoginPage () {
             '      <input type="password" id="userPassword" class="form-control input-sm chat-input" placeholder="password" /><br/>' +
             '      <div class="wrapper">' +
             '        <span class="group-btn">' +
-            '        <a href="#" class="btn btn-primary btn-md" id="loginButton">login<i class="fa fa-sign-in"></i></a>' +
+            '        <a href="#/assets" class="btn btn-primary btn-md" id="loginButton">login<i class="fa fa-sign-in"></i></a>' +
             '        </span>'+
             '      </div>' +
             '    </div>' +
             '  </div>' +
 	    '</div>'
     );
-    $("#loginButton").click(function () {ftyDoLogin(); return false; });
-}
-
-
-function ftyStart () {
-    ftyLoginPage ();
+    $("#loginButton").click(function () {ftyAuth.login ($("#userName").val (), $("#userPassword").val ()); return true; });
 }
