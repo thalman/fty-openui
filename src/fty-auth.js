@@ -36,12 +36,17 @@ var ftyAuth = {
     }
 }
 
+function ftyLoginPageSetError () {
+    $("#loginAlert").html ('<div class="alert alert-danger">Login failed</div>')
+}
+
 function ftyDrawLoginPage () {
     $("#container").html (
 	    '<div class="row">' + 
             '  <div class="col-md-offset-5 col-md-3">' +
             '    <div>' +
             '      <h4>FTY login</h4>' +
+            '      <div id="loginAlert"></div>' +
             '      <input type="text" id="userName" class="form-control input-sm chat-input" placeholder="username" /><br/>' +
             '      <input type="password" id="userPassword" class="form-control input-sm chat-input" placeholder="password" /><br/>' +
             '      <div class="wrapper">' +

@@ -16,13 +16,14 @@ function ftyInnerPage () {
     });
 }
 
-
-
 function ftyDrawPage () {
     console.log ($(location).attr ('hash'));
     if (! ftyAuth.loggedIn ()) {
-	ftyDrawLoginPage ();
-	return;
+	    ftyDrawLoginPage ();
+	    return;
     }
     ftyInnerPage ();
 }
+
+ftyAuth.onLogin = ftyDrawPage;
+ftyAuth.onLoginFail = ftyLoginPageSetError;
