@@ -1,5 +1,6 @@
 function ftyInnerPage () {
     $("#container").html (
+	ftyNavigation () +
 	'<div class="row">' + 
         '  <div class="col-md-offset-5 col-md-3">' +
         '    <div>' +
