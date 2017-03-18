@@ -1,12 +1,40 @@
+function setCookie(cname, cvalue, expire) {
+    var d = new Date();
+    d.setTime(d.getTime() + (expire*1000));
+    var expires = "expires="+ d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+
+function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i <ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+
 var ftyAuth = {
-    token: null,
     user: "",
     pass: "",
     onLogin: null,
     onLoginFail: null,
 
+    token: function() {
+        return getCookie ("ftyAccessToken");
+    },
+    setToken: function (token) {
+        setCookie ("ftyAccessToken", token, 3600);
+    },
     login: function (user, pass) {
-	ftyAuth.token = "";
+	ftyAuth.setToken ("");
 	ftyAuth.user = user;
 	ftyAuth.pass = pass;
 	$.ajax ({
@@ -16,8 +44,11 @@ var ftyAuth = {
 	    contentType: 'application/json',
 	    dataType: "json",
 	    success: function (response) {
-		ftyAuth.token = response.access_token;
-		if (ftyAuth.onLogin) ftyAuth.onLogin ();
+		    ftyAuth.setToken (response.access_token);
+            $.ajaxSetup({
+                headers: { 'Authorization': "Bearer " + ftyAuth.token() }
+            });
+		    if (ftyAuth.onLogin) ftyAuth.onLogin ();
 	    },
 	    error: function () {
 		if (ftyAuth.onLoginFail) ftyAuth.onLoginFail ();
@@ -26,13 +57,23 @@ var ftyAuth = {
     },
 
     loggedIn: function () {
-	return (ftyAuth.token != null);
+        var token = ftyAuth.token ();
+        if (token != "") {
+            $.ajaxSetup({
+                headers: { 'Authorization': "Bearer " + token }
+            });
+            return true;
+        }
+	    return false;
     },
 
     logout: function () {
-	ftyAuth.token = null;
-	ftyAuth.user = "";
-	ftyAuth.pass = "";
+	    ftyAuth.setToken ("");
+	    ftyAuth.user = "";
+	    ftyAuth.pass = "";
+        $.ajaxSetup({
+            headers: { 'Authorization': null }
+        });
     }
 }
 
@@ -42,7 +83,7 @@ function ftyLoginPageSetError () {
 
 function ftyDrawLoginPage () {
     $("#container").html (
-	    '<div class="row">' + 
+	    '<div class="row">' +
             '  <div class="col-md-offset-5 col-md-3">' +
             '    <div>' +
             '      <h4>FTY login</h4>' +
