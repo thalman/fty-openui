@@ -1,112 +1,132 @@
 // page with assets
 
-var ftyAssetPage = {
-    datacenters: [],
-    selectedDC: -1,
-    devices: [],
-    active: false,
+function newAssetPage = {
+    return (function () {
+	var datacenters = [];
+	var selectedDC = -1,;
+	var devices = [];
+	var active = false;
 
-    show: function () {
-        ftyAssetPage.active = true;
-        $("#container").html (
+	var show = function () {
+            active = true;
+            $("#container").html (
 	        ftyNavigation () +
-                '<div class="row" id="assetBoxes">' +
-                '</div>'
-        );
-        ftyAssetPage.showDevices ();
-        $("#filter").keyup (ftyAssetPage.onFilter);
-        $("#filter").focus ();
-        ftyAssetPage.requestAllAssets ();
-    },
-    showDevices: function () {
-        var filter = $("#filter").val ().toLowerCase ();
-        var html = "";
-        for(i=0; i<ftyAssetPage.devices.length; i++) {
-            if (
-                (ftyAssetPage.devices [i].name.toLowerCase().indexOf (filter) != -1) ||
-                (ftyAssetPage.devices [i].type.toLowerCase().indexOf (filter) != -1) ||
-                (ftyAssetPage.devices [i].sub_type.toLowerCase().indexOf (filter) != -1)
-            ) {
-                html += ftyAssetPage.deviceHtml (i);
-            }
-        }
-        $("#assetBoxes").html (html);
-    },
-    deviceHtml: function (idx) {
-        return '<div class="col-xs-6 col-md-3">'+
-            '<div>' +
-            ftyAssetPage.devices[idx].name +
-            '</div>'+
-            '</div>';
-    },
-    updateNavbar: function() {
-        if (ftyAssetPage.datacenters.length) {
-            $("#navbardc").html ("[" + ftyAssetPage.datacenters [ftyAssetPage.selectedDC].name + '] <span class="caret"></span>');
-            var list = ""
-            for (i = 0; i < ftyAssetPage.datacenters.length; i++) {
-                list += '<li><a href="#">' +ftyAssetPage.datacenters [i].name + '</a></li>';
-                // TOTO: dropdown plugin
-            }
-            $("#navbardclist").html (list);
-        } else {
-            $("#navbardc").text ('Datacenter <span class="caret"></span>');
-            $("#navbardclist").html ('');
-        }
-    },
-    hide: function () {
-        ftyAssetPage.active = false;
-    },
-    requestDCs: function () {
-        $.get ('/api/v1/asset/datacenters', null, ftyAssetPage.onDCs);
-    },
-    requestDevices: function () {
-        if (ftyAssetPage.selectedDC >=0) {
-            var dc = ftyAssetPage.datacenters[ftyAssetPage.selectedDC];
-            $.get (
-                '/api/v1/assets',
-                { in: dc.id, type: "device" },
-                ftyAssetPage.onDevices);
-        }
-    },
-    requestAllAssets: function () {
-        ftyAssetPage.requestDCs ();
-    },
+                    '<div class="row" id="assetBoxes">' +
+                    '</div>'
+            );
+            showDevices ();
+            $("#filter").keyup (onFilter);
+            $("#filter").focus ();
+            requestAllAssets ();
+	};
 
-    // ajax callbacks
-    onDevices: function (data) {
-        ftyAssetPage.devices = data;
-        ftyAssetPage.devices.sort (
-            function(a,b) {
-                if (a.name < b.name) return -1;
-                if (a.name > b.name) return +1;
-                return 0;
+	var showDevices = function () {
+            var filter = $("#filter").val ().toLowerCase ();
+            var html = "";
+            for(i=0; i<devices.length; i++) {
+		if (
+                    (devices [i].name.toLowerCase().indexOf (filter) != -1) ||
+			(devices [i].type.toLowerCase().indexOf (filter) != -1) ||
+			(devices [i].sub_type.toLowerCase().indexOf (filter) != -1)
+		) {
+                    html += deviceHtml (i);
+		}
             }
-        );
-        ftyAssetPage.showDevices ();
-	},
-    onDCs: function (data) {
-        ftyAssetPage.datacenters = [];
-        if (data.hasOwnProperty ("datacenters")) {
-            ftyAssetPage.datacenters = data.datacenters;
-            if (ftyAssetPage.datacenters.length) {
-                ftyAssetPage.selectedDC = 0;
+            $("#assetBoxes").html (html);
+	};
+
+	var deviceHtml = function (idx) {
+            return '<div class="col-xs-6 col-md-3">'+
+		'<div>' +
+		devices[idx].name +
+		'</div>'+
+		'</div>';
+	};
+
+	var updateNavbar = function() {
+            if (datacenters.length) {
+		$("#navbardc").html ("[" + datacenters [selectedDC].name + '] <span class="caret"></span>');
+		var list = ""
+		for (i = 0; i < datacenters.length; i++) {
+                    list += '<li><a href="#">' +datacenters [i].name + '</a></li>';
+                    // TOTO: dropdown plugin
+		}
+		$("#navbardclist").html (list);
             } else {
-                ftyAssetPage.selectedDC = -1;
+		$("#navbardc").text ('Datacenter <span class="caret"></span>');
+		$("#navbardclist").html ('');
             }
-        }
-        ftyAssetPage.datacenters.sort (
-            function(a,b) {
-                if (a.name < b.name) return -1;
-                if (a.name > b.name) return +1;
-                return 0;
+	};
+
+	var hide = function () {
+            active = false;
+	};
+
+	var requestDCs = function () {
+            $.get ('/api/v1/asset/datacenters', null, onDCs);
+	};
+	
+	var requestDevices = function () {
+            if (selectedDC >=0) {
+		var dc = datacenters[selectedDC];
+		$.get (
+                    '/api/v1/assets',
+                    { in: dc.id, type: "device" },
+                    onDevices);
             }
-        );
-        // update DC combobox
-        ftyAssetPage.updateNavbar();
-        // ask for DC devices
-        ftyAssetPage.requestDevices ();
-	},
-    onFilter: function () {
-        ftyAssetPage.showDevices ();
-    }
+	};
+
+	var requestAllAssets = function () {
+            requestDCs ();
+	};
+
+        // ajax callbacks
+        var onDevices = function (data) {
+            devices = data;
+            devices.sort (
+		function(a,b) {
+                    if (a.name < b.name) return -1;
+                    if (a.name > b.name) return +1;
+                    return 0;
+		}
+            );
+            showDevices ();
+	};
+
+	var onDCs = function (data) {
+            datacenters = [];
+            if (data.hasOwnProperty ("datacenters")) {
+		datacenters = data.datacenters;
+		if (datacenters.length) {
+                    selectedDC = 0;
+		} else {
+                    selectedDC = -1;
+		}
+            }
+            datacenters.sort (
+		function(a,b) {
+                    if (a.name < b.name) return -1;
+                    if (a.name > b.name) return +1;
+                    return 0;
+		}
+            );
+            // update DC combobox
+            updateNavbar();
+            // ask for DC devices
+            requestDevices ();
+	};
+
+	var onFilter = function () {
+            showDevices ();
+	};
+	
+	// return public api
+	return {
+	    show: show,
+	    hide: hide,
+	};
+    })();
 }
+
+
+var ftyAssetPage = newAssetPage ();
