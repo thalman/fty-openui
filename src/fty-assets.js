@@ -6,6 +6,7 @@ function newAssetPage () {
         var selectedDC = -1;
         var devices = [];
         var active = false;
+        var alerts = [];
 
         var show = function () {
             active = true;
@@ -35,14 +36,26 @@ function newAssetPage () {
             $("#assetBoxes").html (html);
         };
 
+        var stateToImage = function (state) {
+            switch (state) {
+            case 0:
+                return "ok.png";
+            case 1:
+                return "warning.png";
+            case 2:
+                return "critical.png";
+            default:
+                return "unknown.png";
+            }
+        };
+
         var deviceHtml = function (idx) {
             return '<div class="col-xs-6 col-md-3">'+
                 '<div>' +
-                devices[idx].name +
+                '<img src="images/' + stateToImage (devices[idx].state) + '" id="state' + devices[idx].id + '" height="20pt"></img>&nbsp;' + devices[idx].name +
                 '</div>'+
                 '</div>';
         };
-
         var updateNavbar = function() {
             if (datacenters.length) {
                 $("#navbardc").html ("[" + datacenters [selectedDC].name + '] <span class="caret"></span>');
@@ -58,10 +71,44 @@ function newAssetPage () {
             }
         };
 
+        var severityToNumber = function (severity) {
+            switch (severity.toLowerCase ()) {
+            case "ok":
+                return 0;
+            case "warning":
+                return 1;
+            case "critical":
+                return 2;
+            default:
+                return -1;
+            }
+        };
+
+        var assetSeverity = function (elementid) {
+            var severity = -1;
+            for (var i = 0; i < alerts.length; i++) {
+                if (alerts[i].element_id == elementid) {
+                    var s = severityToNumber (alerts [i].severity);
+                    if (s > severity) severity = s;
+                }
+            }
+            console.log (elementid + " state " + severity);
+            return severity;
+        };
+
+        var updateAlertStatuses = function () {
+            for (var i = 0; i< devices.length; i++) {
+                devices[i].state = assetSeverity (devices[i].id);
+                var imageid = '#state' + devices[i].id;
+                $(imageid).attr('src','images/' + stateToImage (devices[i].state));
+            }
+        };
+
         var hide = function () {
             active = false;
         };
 
+        // ajax requests
         var requestDCs = function () {
             $.get ('/api/v1/asset/datacenters', null, onDCs);
         };
@@ -78,6 +125,23 @@ function newAssetPage () {
 
         var requestAllAssets = function () {
             requestDCs ();
+            requestAlerts ();
+        };
+
+        var requestAlerts = function () {
+            $.get (
+                '/api/v1//alerts/activelist',
+                { state: 'ALL'},
+                onAlerts
+            );
+        };
+        var onAlerts = function (data) {
+            console.log (data);
+            if (!active) return;
+
+            alerts = data;
+            updateAlertStatuses();
+            setTimeout (requestAlerts, 10000);
         };
 
         // ajax callbacks
@@ -90,6 +154,9 @@ function newAssetPage () {
                     return 0;
                 }
             );
+            for(i=0; i<devices.length; i++) {
+                devices[i].state = -1;
+            }
             showDevices ();
         };
 
