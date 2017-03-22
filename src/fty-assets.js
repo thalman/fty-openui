@@ -92,7 +92,6 @@ function newAssetPage () {
                     if (s > severity) severity = s;
                 }
             }
-            console.log (elementid + " state " + severity);
             return severity;
         };
 
