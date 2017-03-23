@@ -1,32 +1,48 @@
+var pages = {
+    assetPage: newAssetPage (),
+    alertPage: newAlertPage (),
+    loginPage: newLoginPage (),
+}
+
+var auth = newAuth ();
+
+
+function ftyShowPage (name) {
+    for (var key in pages) {
+        if (pages.hasOwnProperty (key)) {
+            if (name != key) {
+                pages[key].hide();
+            }
+        }
+    }
+    pages[name].show();
+}
+
 function ftyDrawPage (whatPage) {
     var hash = $(location).attr ('hash');
     if (typeof (whatPage) == "string") {
         hash = whatPage;
     }
-    console.log("draw page with " + hash);
-    if (! ftyAuth.loggedIn ()) {
-	    ftyDrawLoginPage ();
+
+    if (! auth.loggedIn ()) {
+	    ftyShowPage ("loginPage");
 	    return;
     }
     switch (hash) {
     case "#/alerts":
-        ftyAlertPage.show();
-        ftyAssetPage.hide();
+        ftyShowPage("alertPage");
         break;
     case "#/assets":
     default:
-        ftyAlertPage.hide();
-        ftyAssetPage.show();
+        ftyShowPage("assetPage");
+        break;
     }
     $("#navbarLogout").click (function () {
-        ftyAuth.logout ();
+        auth.logout ();
         ftyDrawPage ();
         return false;
     });
-    $('.dropdown-toggle').dropdown();
 }
 
-var ftyAlertPage = newAlertPage ();
-
-ftyAuth.onLogin = ftyDrawPage;
-ftyAuth.onLoginFail = ftyLoginPageSetError;
+auth.onLogin(function () { ftyDrawPage("#/assets"); });
+pages.loginPage.onLogin (auth.login);

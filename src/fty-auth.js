@@ -1,4 +1,3 @@
-
 function setCookie(cname, cvalue, expire) {
     var d = new Date();
     d.setTime(d.getTime() + (expire*1000));
@@ -22,83 +21,76 @@ function getCookie(cname) {
     return "";
 }
 
-var ftyAuth = {
-    user: "",
-    pass: "",
-    onLogin: null,
-    onLoginFail: null,
+function newAuth() {
+    return (function () {
+        var user = "";
+        var pass = ""
+        var onLoginCallback = null;
+        var onLoginFailCallback = null;
 
-    token: function() {
-        return getCookie ("ftyAccessToken");
-    },
-    setToken: function (token) {
-        setCookie ("ftyAccessToken", token, 3600);
-    },
-    login: function (user, pass) {
-	ftyAuth.setToken ("");
-	ftyAuth.user = user;
-	ftyAuth.pass = pass;
-	$.ajax ({
-	    url: '/api/v1/oauth2/token',
-	    type: 'POST',
-	    data: JSON.stringify ({ grant_type : "password", username: user, password: pass }),
-	    contentType: 'application/json',
-	    dataType: "json",
-	    success: function (response) {
-		    ftyAuth.setToken (response.access_token);
-            $.ajaxSetup({
-                headers: { 'Authorization': "Bearer " + ftyAuth.token() }
-            });
-		    if (ftyAuth.onLogin) ftyAuth.onLogin ();
-	    },
-	    error: function () {
-		if (ftyAuth.onLoginFail) ftyAuth.onLoginFail ();
-	    }
-	});
-    },
+        var token = function() {
+            return getCookie ("ftyAccessToken");
+        };
 
-    loggedIn: function () {
-        var token = ftyAuth.token ();
-        if (token != "") {
+        var setToken = function (token) {
+            setCookie ("ftyAccessToken", token, 3600);
+        };
+
+        var login = function (aUser, aPass) {
+	        setToken ("");
+	        user = aUser;
+	        pass = aPass;
+	        $.ajax ({
+	            url: '/api/v1/oauth2/token',
+	            type: 'POST',
+	            data: JSON.stringify ({ grant_type : "password", username: user, password: pass }),
+	            contentType: 'application/json',
+	            dataType: "json",
+	            success: function (response) {
+		            setToken (response.access_token);
+                    $.ajaxSetup({
+                        headers: { 'Authorization': "Bearer " + token () }
+                    });
+		            if (onLoginCallback) onLoginCallback ();
+	            },
+	            error: function () {
+                    $("#loginAlert").html ('<div class="alert alert-danger">Login failed</div>');
+		            if (onLoginFailCallback) onLoginFailCallback ();
+	            }
+	        });
+        };
+
+        var loggedIn = function () {
+            var mytoken = token ();
+            if (mytoken != "") {
+                $.ajaxSetup({
+                    headers: { 'Authorization': "Bearer " + token() }
+                });
+                return true;
+            }
+	        return false;
+        };
+
+        var logout = function () {
+	        setToken ("");
+	        user = "";
+	        pass = "";
             $.ajaxSetup({
-                headers: { 'Authorization': "Bearer " + token }
+                headers: { 'Authorization': null }
             });
-            return true;
         }
-	    return false;
-    },
+        var onLogin = function (callback) {
+            onLoginCallback = callback;
+        }
+        var onLoginFail = function (callback) {
+            onLoginFailCallback = callback;
+        }
 
-    logout: function () {
-	    ftyAuth.setToken ("");
-	    ftyAuth.user = "";
-	    ftyAuth.pass = "";
-        $.ajaxSetup({
-            headers: { 'Authorization': null }
-        });
-    }
-}
-
-function ftyLoginPageSetError () {
-    $("#loginAlert").html ('<div class="alert alert-danger">Login failed</div>')
-}
-
-function ftyDrawLoginPage () {
-    $("#container").html (
-	    '<div class="row">' +
-            '  <div class="col-md-offset-5 col-md-3">' +
-            '    <div>' +
-            '      <h4>FTY login</h4>' +
-            '      <div id="loginAlert"></div>' +
-            '      <input type="text" id="userName" class="form-control input-sm chat-input" placeholder="username" /><br/>' +
-            '      <input type="password" id="userPassword" class="form-control input-sm chat-input" placeholder="password" /><br/>' +
-            '      <div class="wrapper">' +
-            '        <span class="group-btn">' +
-            '        <a href="#/assets" class="btn btn-primary btn-md" id="loginButton">login<i class="fa fa-sign-in"></i></a>' +
-            '        </span>'+
-            '      </div>' +
-            '    </div>' +
-            '  </div>' +
-	    '</div>'
-    );
-    $("#loginButton").click(function () {ftyAuth.login ($("#userName").val (), $("#userPassword").val ()); return true; });
+        return {
+            login: login,
+            loggedIn: loggedIn,
+            logout: logout,
+            onLogin: onLogin,
+        }
+    })();
 }

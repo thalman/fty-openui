@@ -62,7 +62,6 @@ function newAssetPage () {
                 var list = ""
                 for (i = 0; i < datacenters.length; i++) {
                     list += '<li><a href="#">' +datacenters [i].name + '</a></li>';
-                    // TOTO: dropdown plugin
                 }
                 $("#navbardclist").html (list);
             } else {
@@ -135,7 +134,6 @@ function newAssetPage () {
             );
         };
         var onAlerts = function (data) {
-            console.log (data);
             if (!active) return;
 
             alerts = data;
@@ -188,11 +186,9 @@ function newAssetPage () {
 
         // return public api
         return {
+            active: active,
             show: show,
             hide: hide,
         };
     })();
 }
-
-
-var ftyAssetPage = newAssetPage ();
