@@ -5,10 +5,8 @@ function newAlertPage () {
 
         var show = function () {
             active = true;
-            $("#container").html (
-                ftyNavigation () +
-                    '<div class="container" id="alertList">' +
-                    '</div>'
+            $("#content").html (
+                '<div class="container" id="alertList"></div>'
             );
             $("#filter").keyup (onFilter);
             requestAlerts ();

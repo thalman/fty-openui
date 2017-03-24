@@ -10,10 +10,9 @@ function newAssetPage () {
 
         var show = function () {
             active = true;
-            $("#container").html (
-                ftyNavigation () +
-                    '<div class="row" id="assetBoxes">' +
-                    '</div>'
+            $("#content").html (
+                '<div class="row" id="assetBoxes">' +
+                '</div>'
             );
             showDevices ();
             $("#filter").keyup (onFilter);

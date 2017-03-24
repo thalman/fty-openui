@@ -10,10 +10,10 @@ function newLoginPage () {
             active = false;
         }
 
-        var onLogin = function (callback) {
+        var onLoginClick = function (callback) {
             onLoginCallback = callback;
         }
-        var onLoginClick = function () {
+        var onLoginClickForm = function () {
             if (onLoginCallback) {
                 onLoginCallback ($("#userName").val (), $("#userPassword").val ());
             }
@@ -22,7 +22,7 @@ function newLoginPage () {
         var show = function () {
             active = true;
             $("body").html (render ());
-            $("#loginButton").click(function () {onLoginClick(); return true;});
+            $("#loginButton").click(function () {onLoginClickForm(); return true;});
         }
 
         var render = function() {
@@ -41,20 +41,22 @@ function newLoginPage () {
                 '      </div>' +
                 '    </div>' +
                 '  </div>' +
-	            '</div>' +
-	            '</div>';
+                '</div>' +
+                '</div>';
         }
 
         var applicationFrames = function() {
             return '<div class="container" id="container">' +
-	            '</div>';
+                '<div id="navigation"></div>' +
+                '<div id="content"></div>' +
+                '</div>';
         }
 
         return {
             active: active,
             show: show,
             hide: hide,
-            onLogin: onLogin,
+            onLoginClick: onLoginClick,
         }
     })();
 }

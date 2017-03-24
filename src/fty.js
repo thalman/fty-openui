@@ -6,7 +6,6 @@ var pages = {
 
 var auth = newAuth ();
 
-
 function ftyShowPage (name) {
     for (var key in pages) {
         if (pages.hasOwnProperty (key)) {
@@ -25,9 +24,10 @@ function ftyDrawPage (whatPage) {
     }
 
     if (! auth.loggedIn ()) {
-	    ftyShowPage ("loginPage");
-	    return;
+        ftyShowPage ("loginPage");
+        return;
     }
+    navigation.show();
     switch (hash) {
     case "#/alerts":
         ftyShowPage("alertPage");
@@ -44,5 +44,8 @@ function ftyDrawPage (whatPage) {
     });
 }
 
-auth.onLogin(function () { ftyDrawPage("#/assets"); });
-pages.loginPage.onLogin (auth.login);
+auth.onLoginSuccess(function () {
+    pages.loginPage.hide ();
+    ftyDrawPage("#/assets");
+});
+pages.loginPage.onLoginClick (auth.login);

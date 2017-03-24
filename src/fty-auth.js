@@ -79,7 +79,7 @@ function newAuth() {
                 headers: { 'Authorization': null }
             });
         }
-        var onLogin = function (callback) {
+        var onLoginSuccess = function (callback) {
             onLoginCallback = callback;
         }
         var onLoginFail = function (callback) {
@@ -90,7 +90,7 @@ function newAuth() {
             login: login,
             loggedIn: loggedIn,
             logout: logout,
-            onLogin: onLogin,
+            onLoginSuccess: onLoginSuccess,
         }
     })();
 }

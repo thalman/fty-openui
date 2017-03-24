@@ -1,6 +1,13 @@
-function ftyNavigation () {
-    return (
-        '<nav class="navbar navbar-default">' +
+
+var navigation = (function () {
+    var hide = function () { };
+    var show = function () {
+        if ($("#filter").length) return;
+        $("#navigation").html (render());
+    };
+    var render = function () {
+        return (
+            '<nav class="navbar navbar-default">' +
 	        '  <div class="container-fluid">' +
 	        '    <div class="navbar-header">' +
 	        '      <a class="navbar-brand" href="#">Fty</a>' +
@@ -28,5 +35,12 @@ function ftyNavigation () {
 	        '    </div>' +
 	        '  </div>' +
 	        '</nav>'
-    );
-}
+        );
+    };
+
+    return {
+        show: show,
+        hide: hide,
+        render: render,
+    }
+})();
