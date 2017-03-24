@@ -9,6 +9,7 @@ function newAlertPage () {
                 '<div class="container" id="alertList"></div>'
             );
             $("#filter").keyup (onFilter);
+            $("#filter").focus ();
             requestAlerts ();
         };
         var hide = function () {
