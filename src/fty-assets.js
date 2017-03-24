@@ -151,7 +151,7 @@ function newAssetPage () {
                 }
             );
             for(i=0; i<devices.length; i++) {
-                devices[i].state = -1;
+                devices[i].state = assetSeverity (devices[i].id);
             }
             showDevices ();
         };
