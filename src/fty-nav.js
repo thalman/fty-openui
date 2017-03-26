@@ -1,10 +1,17 @@
 
 var navigation = (function () {
+    var onNavigationCallback = null;
+
     var hide = function () { };
+
     var show = function () {
         if ($("#filter").length) return;
         $("#navigation").html (render());
+        $("#navbarAssetsA").click (function() { onClick ("#/assets"); });
+        $("#navbarAlertsA").click (function() { onClick ("#/alerts"); });
+        select ($(location).attr ('hash'));
     };
+
     var render = function () {
         return (
             '<nav class="navbar navbar-default">' +
@@ -32,8 +39,8 @@ var navigation = (function () {
             '            <div class="form-group"><input type="text" class="form-control" placeholder="Search" id="filter"></div>' +
             '          </form>' +
             '        </li>'+
-            '        <li><a href="#/assets" onclick="ftyDrawPage(\'#/assets\'); return true;">Assets</a></li>'+
-            '        <li><a href="#/alerts" onclick="ftyDrawPage(\'#/alerts\'); return true;">Alerts</a></li>'+
+            '        <li id="navbarAssets"><a href="#/assets" id="navbarAssetsA">Assets</a></li>'+
+            '        <li id="navbarAlerts"><a href="#/alerts" id="navbarAlertsA">Alerts</a></li>'+
             '      </ul>' +
             '      <ul class="nav navbar-nav navbar-right">' + // what is on right
             '        <li><a href="#/logout" id="navbarLogout">Logout</a></li>' +
@@ -44,9 +51,33 @@ var navigation = (function () {
         );
     };
 
+    var select = function (what) {
+        ["#navbarAlerts","#navbarAssets"].map ( function (i) {
+            $(i).removeClass ("active");
+        } );
+        switch (what) {
+        case "#/assets":
+            $("#navbarAssets").addClass ("active");
+            break;
+        case "#/alerts":
+            $("#navbarAlerts").addClass ("active");
+            break;
+        };
+    };
+
+    var onClick = function (what) {
+        select (what);
+        if (onNavigationCallback) onNavigationCallback (what);
+    };
+
+    var onNavigationClick = function (callback) {
+        onNavigationCallback = callback;
+    };
+
     return {
         show: show,
         hide: hide,
         render: render,
+        onNavigationClick, onNavigationClick,
     }
 })();

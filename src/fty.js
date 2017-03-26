@@ -49,3 +49,4 @@ auth.onLoginSuccess(function () {
     ftyDrawPage("#/assets");
 });
 pages.loginPage.onLoginClick (auth.login);
+navigation.onNavigationClick (ftyDrawPage);
