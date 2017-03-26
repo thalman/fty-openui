@@ -9,6 +9,7 @@ var navigation = (function () {
         $("#navigation").html (render());
         $("#navbarAssetsA").click (function() { onClick ("#/assets"); });
         $("#navbarAlertsA").click (function() { onClick ("#/alerts"); });
+        $("#navbarSettings").click (function() { onClick ("#/settings"); });
         select ($(location).attr ('hash'));
     };
 
@@ -41,6 +42,7 @@ var navigation = (function () {
             '        </li>'+
             '        <li id="navbarAssets"><a href="#/assets" id="navbarAssetsA">Assets</a></li>'+
             '        <li id="navbarAlerts"><a href="#/alerts" id="navbarAlertsA">Alerts</a></li>'+
+            '        <li id="navbarSettings"><a href="#/settings" id="navbarSettingsA">Settings</a></li>'+
             '      </ul>' +
             '      <ul class="nav navbar-nav navbar-right">' + // what is on right
             '        <li><a href="#/logout" id="navbarLogout">Logout</a></li>' +
@@ -52,7 +54,7 @@ var navigation = (function () {
     };
 
     var select = function (what) {
-        ["#navbarAlerts","#navbarAssets"].map ( function (i) {
+        ["#navbarAlerts", "#navbarAssets", "#navbarSettings"].map ( function (i) {
             $(i).removeClass ("active");
         } );
         switch (what) {
@@ -61,6 +63,9 @@ var navigation = (function () {
             break;
         case "#/alerts":
             $("#navbarAlerts").addClass ("active");
+            break;
+        case "#/settings":
+            $("#navbarSettings").addClass ("active");
             break;
         };
     };

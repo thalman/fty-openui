@@ -2,6 +2,7 @@ var pages = {
     assetPage: newAssetPage (),
     alertPage: newAlertPage (),
     loginPage: newLoginPage (),
+    settingsPage: newSettingsPage (),
 }
 
 var auth = newAuth ();
@@ -29,6 +30,9 @@ function ftyDrawPage (whatPage) {
     }
     navigation.show();
     switch (hash) {
+    case "#/settings":
+        ftyShowPage("settingsPage");
+        break;
     case "#/alerts":
         ftyShowPage("alertPage");
         break;
