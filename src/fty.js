@@ -52,5 +52,6 @@ auth.onLoginSuccess(function () {
     pages.loginPage.hide ();
     ftyDrawPage("#/assets");
 });
+auth.onLoginFail (pages.loginPage.onAuthenticationFinished);
 pages.loginPage.onLoginClick (auth.login);
 navigation.onNavigationClick (ftyDrawPage);

@@ -54,8 +54,7 @@ function newAuth() {
 		            if (onLoginCallback) onLoginCallback ();
 	            },
 	            error: function () {
-                    $("#loginAlert").html ('<div class="alert alert-danger">Login failed</div>');
-		            if (onLoginFailCallback) onLoginFailCallback ();
+		            if (onLoginFailCallback) onLoginFailCallback ("Login failed");
 	            }
 	        });
         };
@@ -91,6 +90,7 @@ function newAuth() {
             loggedIn: loggedIn,
             logout: logout,
             onLoginSuccess: onLoginSuccess,
+            onLoginFail: onLoginFail,
         }
     })();
 }

@@ -14,8 +14,18 @@ function newLoginPage () {
             onLoginCallback = callback;
         }
         var onLoginClickForm = function () {
+            $("input").prop('disabled', true);
+            $("#loginButton").click(function () {return false;});
             if (onLoginCallback) {
                 onLoginCallback ($("#userName").val (), $("#userPassword").val ());
+            }
+        }
+
+        var onAuthenticationFinished = function (errormessage) {
+            $('input').prop('disabled', false);
+            $("#loginButton").click(function () {onLoginClickForm(); return true;});
+            if (typeof errormessage == "string" && errormessage.length > 0) {
+                $("#loginAlert").html ('<div class="alert alert-danger">' + errormessage + '</div>');
             }
         }
 
@@ -57,6 +67,7 @@ function newLoginPage () {
             show: show,
             hide: hide,
             onLoginClick: onLoginClick,
+            onAuthenticationFinished, onAuthenticationFinished,
         }
     })();
 }
