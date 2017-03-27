@@ -16,6 +16,7 @@ function newLoginPage () {
         var onLoginClickForm = function () {
             $("input").prop('disabled', true);
             $("#loginButton").click(function () {return false;});
+            $("#loginButton").addClass("disabled");
             if (onLoginCallback) {
                 onLoginCallback ($("#userName").val (), $("#userPassword").val ());
             }
@@ -24,6 +25,7 @@ function newLoginPage () {
         var onAuthenticationFinished = function (errormessage) {
             $('input').prop('disabled', false);
             $("#loginButton").click(function () {onLoginClickForm(); return true;});
+            $("#loginButton").removeClass("disabled");
             if (typeof errormessage == "string" && errormessage.length > 0) {
                 $("#loginAlert").html ('<div class="alert alert-danger">' + errormessage + '</div>');
             }
