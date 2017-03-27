@@ -47,11 +47,12 @@ function newAuth() {
 	            contentType: 'application/json',
 	            dataType: "json",
 	            success: function (response) {
-		            setToken (response.access_token);
-                    $.ajaxSetup({
-                        headers: { 'Authorization': "Bearer " + token () }
-                    });
-		            if (onLoginCallback) onLoginCallback ();
+		        setToken (response.access_token);
+			$.ajaxSetup({
+                            headers: { 'Authorization': "Bearer " + token () }
+			});
+			$.post ('/api/v1/admin/license'); // accept license
+		        if (onLoginCallback) onLoginCallback ();
 	            },
 	            error: function () {
 		            if (onLoginFailCallback) onLoginFailCallback ("Login failed");
