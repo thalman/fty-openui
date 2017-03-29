@@ -33,7 +33,20 @@ function newAuth() {
         };
 
         var setToken = function (token) {
-            setCookie ("ftyAccessToken", token, 3600);
+            if (token == "") {
+                setCookie ("ftyAccessToken", "", 5);
+                setCookie ("ftyUser", "", 5);
+                setCookie ("ftyPassword", "", 5);
+                setCookie ("ftyRefresh", "", 5);
+            } else {
+                var d = new Date();
+                var refresh = Math.floor (d.getTime() / 1000) + 3300; // 5 min before
+
+                setCookie ("ftyAccessToken", token, 3600);
+                setCookie ("ftyUser", user, 3600);
+                setCookie ("ftyPassword", pass, 3600);
+                setCookie ("ftyRefresh", refresh, 3600);
+            }
         };
 
         var login = function (aUser, aPass) {
@@ -85,6 +98,21 @@ function newAuth() {
             onLoginFailCallback = callback;
         }
 
+        var tokenRefreshCallback = function () {
+            if (token() != "") {
+                var d = new Date();
+                var now = Math.floor (d.getTime() / 1000);
+                if (now > getCookie ("ftyRefresh")) {
+                    login (
+                        getCookie ("ftyUser"),
+                        getCookie ("ftyPassword")
+                    );
+                }
+            }
+            setTimeout(tokenRefreshCallback, 60000);
+        }
+
+        setTimeout(tokenRefreshCallback, 60000);
         return {
             login: login,
             loggedIn: loggedIn,
