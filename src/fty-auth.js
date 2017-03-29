@@ -32,7 +32,7 @@ function newAuth() {
             return getCookie ("ftyAccessToken");
         };
 
-        var setToken = function (token) {
+        var setToken = function (token, expiresin) {
             if (token == "") {
                 setCookie ("ftyAccessToken", "", 5);
                 setCookie ("ftyUser", "", 5);
@@ -40,17 +40,17 @@ function newAuth() {
                 setCookie ("ftyRefresh", "", 5);
             } else {
                 var d = new Date();
-                var refresh = Math.floor (d.getTime() / 1000) + 3300; // 5 min before
+                var refresh = Math.floor (d.getTime() / 1000) + expiresin - 300; // 5 min before
 
-                setCookie ("ftyAccessToken", token, 3600);
-                setCookie ("ftyUser", user, 3600);
-                setCookie ("ftyPassword", pass, 3600);
-                setCookie ("ftyRefresh", refresh, 3600);
+                setCookie ("ftyAccessToken", token, expiresin);
+                setCookie ("ftyUser", user, expiresin);
+                setCookie ("ftyPassword", pass, expiresin);
+                setCookie ("ftyRefresh", refresh, expiresin);
             }
         };
 
         var login = function (aUser, aPass) {
-	        setToken ("");
+	        setToken ("", 0);
 	        user = aUser;
 	        pass = aPass;
 	        $.ajax ({
@@ -60,7 +60,7 @@ function newAuth() {
 	            contentType: 'application/json',
 	            dataType: "json",
 	            success: function (response) {
-		            setToken (response.access_token);
+		            setToken (response.access_token, response.expires_in);
                     $.ajaxSetup({
                         headers: { 'Authorization': "Bearer " + token () }
                     });
@@ -84,7 +84,7 @@ function newAuth() {
         };
 
         var logout = function () {
-	        setToken ("");
+	        setToken ("", 0);
 	        user = "";
 	        pass = "";
             $.ajaxSetup({
