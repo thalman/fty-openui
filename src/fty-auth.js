@@ -32,12 +32,25 @@ function newAuth() {
             return getCookie ("ftyAccessToken");
         };
 
-        var setToken = function (token) {
-            setCookie ("ftyAccessToken", token, 3600);
+        var setToken = function (token, expiresin) {
+            if (token == "") {
+                setCookie ("ftyAccessToken", "", 5);
+                setCookie ("ftyUser", "", 5);
+                setCookie ("ftyPassword", "", 5);
+                setCookie ("ftyRefresh", "", 5);
+            } else {
+                var d = new Date();
+                var refresh = Math.floor (d.getTime() / 1000) + expiresin - 300; // 5 min before
+
+                setCookie ("ftyAccessToken", token, expiresin);
+                setCookie ("ftyUser", user, expiresin);
+                setCookie ("ftyPassword", pass, expiresin);
+                setCookie ("ftyRefresh", refresh, expiresin);
+            }
         };
 
         var login = function (aUser, aPass) {
-	        setToken ("");
+	        setToken ("", 0);
 	        user = aUser;
 	        pass = aPass;
 	        $.ajax ({
@@ -47,12 +60,11 @@ function newAuth() {
 	            contentType: 'application/json',
 	            dataType: "json",
 	            success: function (response) {
-		        setToken (response.access_token);
-			$.ajaxSetup({
-                            headers: { 'Authorization': "Bearer " + token () }
-			});
-			$.post ('/api/v1/admin/license'); // accept license
-		        if (onLoginCallback) onLoginCallback ();
+		            setToken (response.access_token, response.expires_in);
+                    $.ajaxSetup({
+                        headers: { 'Authorization': "Bearer " + token () }
+                    });
+		            if (onLoginCallback) onLoginCallback ();
 	            },
 	            error: function () {
 		            if (onLoginFailCallback) onLoginFailCallback ("Login failed");
@@ -72,7 +84,7 @@ function newAuth() {
         };
 
         var logout = function () {
-	        setToken ("");
+	        setToken ("", 0);
 	        user = "";
 	        pass = "";
             $.ajaxSetup({
@@ -86,6 +98,21 @@ function newAuth() {
             onLoginFailCallback = callback;
         }
 
+        var tokenRefreshCallback = function () {
+            if (token() != "") {
+                var d = new Date();
+                var now = Math.floor (d.getTime() / 1000);
+                if (now > getCookie ("ftyRefresh")) {
+                    login (
+                        getCookie ("ftyUser"),
+                        getCookie ("ftyPassword")
+                    );
+                }
+            }
+            setTimeout(tokenRefreshCallback, 60000);
+        }
+
+        setTimeout(tokenRefreshCallback, 60000);
         return {
             login: login,
             loggedIn: loggedIn,
