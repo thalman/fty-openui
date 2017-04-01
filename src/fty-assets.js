@@ -49,9 +49,13 @@ function newAssetPage () {
         };
 
         var deviceHtml = function (idx) {
+            var name = devices[idx].name;
+            if (name.length > 23 ) {
+                name = name.substring (0, 19) + "...";
+            }
             return '<div class="col-xs-6 col-md-3">'+
-                '<div>' +
-                '<img src="images/' + stateToImage (devices[idx].state) + '" id="state' + devices[idx].id + '" height="20pt"></img>&nbsp;' + devices[idx].name +
+                '<div class="ftyasset">' +
+                '<img src="images/' + stateToImage (devices[idx].state) + '" id="state' + devices[idx].id + '" height="20pt"></img>&nbsp;' + name +
                 '</div>'+
                 '</div>';
         };
