@@ -9,6 +9,7 @@ function newSettingsPage () {
             );
             $("#settingsExport").click (onExportClick);
             $("#settingsImport").click (onImportClick);
+            $("#filter").keyup (null);
         }
 
         var hide = function () {
