@@ -4,3 +4,7 @@
     background-color: #f0f0f0;
     overflow: hidden;
 }
+
+.ftyclickable {
+    cursor: pointer;
+}
