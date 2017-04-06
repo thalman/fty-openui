@@ -81,20 +81,6 @@ function newAssetPage () {
             return null;
         }
 
-        var updateNavbar = function() {
-            if (datacenters.length) {
-                $("#navbardc").html ("[" + datacenters [selectedDC].name + '] <span class="caret"></span>');
-                var list = ""
-                for (i = 0; i < datacenters.length; i++) {
-                    list += '<li><a href="#">' +datacenters [i].name + '</a></li>';
-                }
-                $("#navbardclist").html (list);
-            } else {
-                $("#navbardc").text ('Datacenter <span class="caret"></span>');
-                $("#navbardclist").html ('');
-            }
-        };
-
         var severityToNumber = function (severity) {
             switch (severity.toLowerCase ()) {
             case "ok":
@@ -217,8 +203,6 @@ function newAssetPage () {
                     return 0;
                 }
             );
-            // update DC combobox
-            updateNavbar();
             // ask for DC devices
             requestDevices ();
         };

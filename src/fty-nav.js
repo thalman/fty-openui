@@ -1,3 +1,5 @@
+var datacenters = [];
+var selectedDC = -1;
 
 var navigation = (function () {
     var onNavigationCallback = null;
@@ -11,6 +13,7 @@ var navigation = (function () {
         $("#navbarAlertsA").click (function() { onClick ("#/alerts"); });
         $("#navbarSettings").click (function() { onClick ("#/settings"); });
         select ($(location).attr ('hash'));
+	requestDCs ();
     };
 
     var render = function () {
@@ -30,7 +33,7 @@ var navigation = (function () {
             '      <ul class="nav navbar-nav">' +
             '        <li class="dropdown">' +
             '          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"' +
-            '             aria-haspopup="true" aria-expanded="false" id="navbardc">Datacenter<span class="caret"></span></a>' +
+            '             aria-haspopup="true" aria-expanded="false" id="navbardc">[All DCs]<span class="caret"></span></a>' +
             '          <ul class="dropdown-menu" id="navbardclist">' +
             '            <li><a href="#">DC</a></li>'+
             '          </ul>' +
@@ -52,6 +55,13 @@ var navigation = (function () {
             '</nav>'
         );
     };
+
+    var selectedDCs = function () {
+	if (selectedDC >= 0) {
+	    return [ datacenters[selectedDC] ];
+	}
+	return datacenters;
+    }
 
     var select = function (what) {
         ["#navbarAlerts", "#navbarAssets", "#navbarSettings"].map ( function (i) {
@@ -77,6 +87,46 @@ var navigation = (function () {
 
     var onNavigationClick = function (callback) {
         onNavigationCallback = callback;
+    };
+
+    var updateNavbar = function() {
+	var label = "All DCs";
+        var list = '<li><a href="#">' + label + '</a></li>'
+	if (selectedDC >= 0) label = datacenters [selectedDC].name
+        $("#navbardc").html ("[" + label + '] <span class="caret"></span>');
+        for (i = 0; i < datacenters.length; i++) {
+            list += '<li><a href="#">' +datacenters [i].name + '</a></li>';
+        }
+        $("#navbardclist").html (list);
+    }
+
+    var onDCs = function (data) {
+        datacenters = [];
+        if (data.hasOwnProperty ("datacenters")) {
+            datacenters = data.datacenters;
+            if (datacenters.length) {
+                selectedDC = 0;
+            } else {
+                selectedDC = -1;
+            }
+        }
+        datacenters.sort (
+            function(a,b) {
+                if (a.name < b.name) return -1;
+                if (a.name > b.name) return +1;
+                return 0;
+            }
+        );
+	if (datacenters.length <= selectedDC) {
+	    selectedDC = -1;
+	}
+        // update DC combobox
+        updateNavbar();
+	setTimeout (requestDCs, 10000);
+    };
+
+    var requestDCs = function () {
+        $.get ('/api/v1/asset/datacenters', null, onDCs);
     };
 
     return {
