@@ -12,6 +12,22 @@ function newAssetPage () {
             active = true;
             $("#content").html (
                 '<div class="row" id="assetBoxes">' +
+                '</div>' +
+                '<div class="modal fade" id="settingsModal" role="dialog">' +
+                '  <div class="modal-dialog" role="document">' +
+                '    <div class="modal-content">' +
+                '      <div class="modal-header">' +
+                '        <button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+                '          <span aria-hidden="true">&times;</span>' +
+                '        </button>' +
+                '        <h3 class="modal-title" id="settingsModalTitle">Title</h3>' +
+                '      </div>' +
+                '      <div class="modal-body" id="settingsModalBody">' +
+                '      </div>' +
+                '      <div class="modal-footer" id="settingsModalFooter">' +
+                '      </div>' +
+                '    </div>' +
+                '  </div>' +
                 '</div>'
             );
             showDevices ();
@@ -33,6 +49,7 @@ function newAssetPage () {
                 }
             }
             $("#assetBoxes").html (html);
+            $(".ftyclickable").click (onAssetClick);
         };
 
         var stateToImage = function (state) {
@@ -49,12 +66,21 @@ function newAssetPage () {
         };
 
         var deviceHtml = function (idx) {
+            var name = devices[idx].name;
             return '<div class="col-xs-6 col-md-3">'+
-                '<div>' +
-                '<img src="images/' + stateToImage (devices[idx].state) + '" id="state' + devices[idx].id + '" height="20pt"></img>&nbsp;' + devices[idx].name +
+                '<div class="ftyasset ftyclickable" id="assetid-' + devices[idx].id + '">' +
+                '<img src="images/' + stateToImage (devices[idx].state) + '" id="state' + devices[idx].id + '" height="20pt"></img>&nbsp;' + name +
                 '</div>'+
                 '</div>';
         };
+
+        var assetById = function (id) {
+            for (var i in devices) {
+                if (devices [i].id == id) return devices [i];
+            }
+            return null;
+        }
+
         var updateNavbar = function() {
             if (datacenters.length) {
                 $("#navbardc").html ("[" + datacenters [selectedDC].name + '] <span class="caret"></span>');
@@ -101,6 +127,24 @@ function newAssetPage () {
             }
         };
 
+        var deviceType = function (device) {
+            if (device.type == "device") return device.sub_type;
+            return device.type;
+        }
+
+        var onAssetClick = function () {
+            console.log (this.id);
+            var assetId = this.id.substring (this.id.indexOf ("-") + 1);
+            var d = assetById (assetId);
+
+            $('#settingsModalTitle').html (d.name + " (" + deviceType (d) + ")");
+            $('#settingsModalBody').html ("asset details");
+            $('#settingsModalFooter').html (
+                '<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>'
+            );
+            $('#settingsModal').modal ();
+        }
+
         var hide = function () {
             active = false;
         };
@@ -127,7 +171,7 @@ function newAssetPage () {
 
         var requestAlerts = function () {
             $.get (
-                '/api/v1//alerts/activelist',
+                '/api/v1/alerts/activelist',
                 { state: 'ALL'},
                 onAlerts
             );
