@@ -13,7 +13,7 @@ var navigation = (function () {
         $("#navbarAlertsA").click (function() { onClick ("#/alerts"); });
         $("#navbarSettings").click (function() { onClick ("#/settings"); });
         select ($(location).attr ('hash'));
-	requestDCs ();
+        requestDCs ();
     };
 
     var render = function () {
@@ -52,15 +52,22 @@ var navigation = (function () {
             '      </ul>' +
             '    </div>' +
             '  </div>' +
-            '</nav>'
+            '</nav>' +
+            '<div class="modal" id="disablePage" data-backdrop="static" data-keyboard="false">' +
+            '  <div class="modal-body">' +
+            '    <div id="ajax_loader">' +
+            '      <img src="images/loader.gif" style="display: block; margin-left: auto; margin-right: auto; z-index: 999;">' +
+            '    </div>' +
+            '  </div>' +
+            '</div>'
         );
     };
 
     var selectedDCs = function () {
-	    if (selectedDC >= 0) {
-	        return [ datacenters[selectedDC] ];
-	    }
-	    return datacenters;
+        if (selectedDC >= 0) {
+            return [ datacenters[selectedDC] ];
+        }
+        return datacenters;
     }
 
     var select = function (what) {
@@ -109,9 +116,9 @@ var navigation = (function () {
     }
 
     var updateNavbar = function() {
-	    var label = "All DCs";
+        var label = "All DCs";
         var list = '<li><a href="#" class="ftyDCSelector" id="ftyDCSelectorAll">' + label + '</a></li>'
-	    if (selectedDC >= 0) label = datacenters [selectedDC].name
+        if (selectedDC >= 0) label = datacenters [selectedDC].name
         $("#navbardc").html ("[" + label + '] <span class="caret"></span>');
         for (i = 0; i < datacenters.length; i++) {
             list += '<li><a href="#" class="ftyDCSelector" id="ftyDCSelector-' + datacenters [i].id + '">' +datacenters [i].name + '</a></li>';
@@ -132,12 +139,12 @@ var navigation = (function () {
                 }
             );
             if ((datacenters.length != newdcs.length) || (JSON.stringify(datacenters) != JSON.stringify(newdcs))) {
-	            selectedDC = -1;
+                selectedDC = -1;
                 datacenters = newdcs;
                 updateNavbar ();
             }
         }
-	    setTimeout (requestDCs, 10000);
+        setTimeout (requestDCs, 10000);
     };
 
     var requestDCs = function () {
@@ -151,3 +158,11 @@ var navigation = (function () {
         onNavigationClick, onNavigationClick,
     }
 })();
+
+function waiting() {
+    $("#disablePage").modal ();
+}
+
+function nowaiting () {
+    $("#disablePage").modal ('hide');
+}
