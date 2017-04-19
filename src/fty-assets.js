@@ -156,11 +156,15 @@ function newAssetPage () {
         };
 
         var requestAlerts = function () {
-            $.get (
-                '/api/v1/alerts/activelist',
-                { state: 'ALL'},
-                onAlerts
-            );
+            if (selectedDC >= 0) {
+                $.get (
+                    '/api/v1/alerts/activelist',
+                    { state: 'ALL', recursive: true, asset: datacenters[selectedDC].id },
+                    onAlerts
+                );
+            } else {
+                onAlerts( [] );
+            }
         };
         var onAlerts = function (data) {
             if (!active) return;

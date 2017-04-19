@@ -57,10 +57,10 @@ var navigation = (function () {
     };
 
     var selectedDCs = function () {
-	if (selectedDC >= 0) {
-	    return [ datacenters[selectedDC] ];
-	}
-	return datacenters;
+	    if (selectedDC >= 0) {
+	        return [ datacenters[selectedDC] ];
+	    }
+	    return datacenters;
     }
 
     var select = function (what) {
@@ -87,42 +87,57 @@ var navigation = (function () {
 
     var onNavigationClick = function (callback) {
         onNavigationCallback = callback;
-    };
+    }
+
+    var onDCChange = function () {
+        var label = "";
+        if (this.id == "ftyDCSelectorAll") {
+            label = "All DCs";
+            selectedDC = -1;
+        } else {
+            var dcid = this.id.substring (14);
+            for (var i in datacenters) {
+                if (datacenters[i].id == dcid) {
+                    label = datacenters[i].name;
+                    selectedDC = i;
+                    break;
+                }
+            }
+        }
+        $("#navbardc").html ("[" + label + '] <span class="caret"></span>');
+        return true;
+    }
 
     var updateNavbar = function() {
-	var label = "All DCs";
-        var list = '<li><a href="#">' + label + '</a></li>'
-	if (selectedDC >= 0) label = datacenters [selectedDC].name
+	    var label = "All DCs";
+        var list = '<li><a href="#" class="ftyDCSelector" id="ftyDCSelectorAll">' + label + '</a></li>'
+	    if (selectedDC >= 0) label = datacenters [selectedDC].name
         $("#navbardc").html ("[" + label + '] <span class="caret"></span>');
         for (i = 0; i < datacenters.length; i++) {
-            list += '<li><a href="#">' +datacenters [i].name + '</a></li>';
+            list += '<li><a href="#" class="ftyDCSelector" id="ftyDCSelector-' + datacenters [i].id + '">' +datacenters [i].name + '</a></li>';
         }
         $("#navbardclist").html (list);
+        $(".ftyDCSelector").click (onDCChange);
     }
 
     var onDCs = function (data) {
-        datacenters = [];
+        var newdcs = [];
         if (data.hasOwnProperty ("datacenters")) {
-            datacenters = data.datacenters;
-            if (datacenters.length) {
-                selectedDC = 0;
-            } else {
-                selectedDC = -1;
+            newdcs = data.datacenters;
+            newdcs.sort (
+                function(a,b) {
+                    if (a.name < b.name) return -1;
+                    if (a.name > b.name) return +1;
+                    return 0;
+                }
+            );
+            if ((datacenters.length != newdcs.length) || (JSON.stringify(datacenters) != JSON.stringify(newdcs))) {
+	            selectedDC = -1;
+                datacenters = newdcs;
+                updateNavbar ();
             }
         }
-        datacenters.sort (
-            function(a,b) {
-                if (a.name < b.name) return -1;
-                if (a.name > b.name) return +1;
-                return 0;
-            }
-        );
-	if (datacenters.length <= selectedDC) {
-	    selectedDC = -1;
-	}
-        // update DC combobox
-        updateNavbar();
-	setTimeout (requestDCs, 10000);
+	    setTimeout (requestDCs, 10000);
     };
 
     var requestDCs = function () {
