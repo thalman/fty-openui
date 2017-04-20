@@ -1,10 +1,13 @@
 var datacenters = [];
 var selectedDC = -1;
+var requestedDC = null;
+
+var assets = {};
 
 var navigation = (function () {
     var onNavigationCallback = null;
 
-    var hide = function () { };
+    var hide = function () { }
 
     var show = function () {
         if ($("#filter").length) return;
@@ -14,7 +17,7 @@ var navigation = (function () {
         $("#navbarSettings").click (function() { onClick ("#/settings"); });
         select ($(location).attr ('hash'));
         requestDCs ();
-    };
+    }
 
     var render = function () {
         return (
@@ -61,7 +64,7 @@ var navigation = (function () {
             '  </div>' +
             '</div>'
         );
-    };
+    }
 
     var selectedDCs = function () {
         if (selectedDC >= 0) {
@@ -84,13 +87,13 @@ var navigation = (function () {
         case "#/settings":
             $("#navbarSettings").addClass ("active");
             break;
-        };
-    };
+        }
+    }
 
     var onClick = function (what) {
         select (what);
         if (onNavigationCallback) onNavigationCallback (what);
-    };
+    }
 
     var onNavigationClick = function (callback) {
         onNavigationCallback = callback;
@@ -145,11 +148,56 @@ var navigation = (function () {
             }
         }
         setTimeout (requestDCs, 10000);
-    };
+    }
 
     var requestDCs = function () {
         $.get ('/api/v1/asset/datacenters', null, onDCs);
-    };
+    }
+
+    var DCIdIndex = function (DC) {
+        for (var i in datacenters) {
+            if (datacenters[i].id == DC.id) return i;
+        }
+        return -1;
+    }
+
+    var requestDevices = function () {
+        if (datacenters.length == 0) {
+            requestedDC = null;
+            return;
+        }
+        if (selectedDC >=0) {
+            requestedDC = datacenters[selectedDC];
+            $.get (
+                '/api/v1/assets',
+                { in: requestedDC.id, type: "device" },
+                onDevices);
+        } else {
+            if (requestedDC == null) {
+                requestedDC = datacenters[0];
+            } else {
+                var i = DCIdIndex (requestedDC) + 1;
+                if (i >= datacenters.length) i = 0;
+                requestedDC = datacenters [i];
+            }
+            $.get (
+                '/api/v1/assets',
+                { in: requestedDC.id, type: "device" },
+                onDevices);
+        }
+    }
+    var onDevices = function (data) {
+        devices = data;
+        devices.sort (
+            function(a,b) {
+                if (a.name < b.name) return -1;
+                if (a.name > b.name) return +1;
+                return 0;
+            }
+        );
+        assets [requestedDC.id] = devices;
+        setTimeout (requestDevices, 10000);
+    }
 
     return {
         show: show,
