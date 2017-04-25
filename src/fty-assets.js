@@ -2,8 +2,6 @@
 
 function newAssetPage () {
     return (function () {
-        var datacenters = [];
-        var selectedDC = -1;
         var devices = [];
         var active = false;
         var alerts = [];
@@ -92,26 +90,14 @@ function newAssetPage () {
             default:
                 return -1;
             }
-        };
+        }
 
-        var assetSeverity = function (elementid) {
-            var severity = -1;
-            for (var i = 0; i < alerts.length; i++) {
-                if (alerts[i].element_id == elementid) {
-                    var s = severityToNumber (alerts [i].severity);
-                    if (s > severity) severity = s;
-                }
-            }
-            return severity;
-        };
-
-        var updateAlertStatuses = function () {
+        var updateAlertIcons = function () {
             for (var i = 0; i< devices.length; i++) {
-                devices[i].state = assetSeverity (devices[i].id);
                 var imageid = '#state' + devices[i].id;
                 $(imageid).attr('src','images/' + stateToImage (devices[i].state));
             }
-        };
+        }
 
         var deviceType = function (device) {
             if (device.type == "device") return device.sub_type;
@@ -135,82 +121,19 @@ function newAssetPage () {
             active = false;
         };
 
-        // ajax requests
-        var requestDCs = function () {
-            $.get ('/api/v1/asset/datacenters', null, onDCs);
-        };
-
-        var requestDevices = function () {
-            if (selectedDC >=0) {
-                var dc = datacenters[selectedDC];
-                $.get (
-                    '/api/v1/assets',
-                    { in: dc.id, type: "device" },
-                    onDevices);
-            }
-        };
-
         var requestAllAssets = function () {
-            requestDCs ();
-            requestAlerts ();
-        };
-
-        var requestAlerts = function () {
-            if (selectedDC >= 0) {
-                $.get (
-                    '/api/v1/alerts/activelist',
-                    { state: 'ALL', recursive: true, asset: datacenters[selectedDC].id },
-                    onAlerts
-                );
-            } else {
-                onAlerts( [] );
-            }
-        };
-        var onAlerts = function (data) {
-            if (!active) return;
-
-            alerts = data;
-            updateAlertStatuses();
-            setTimeout (requestAlerts, 10000);
-        };
-
-        // ajax callbacks
-        var onDevices = function (data) {
-            devices = data;
-            devices.sort (
-                function(a,b) {
-                    if (a.name < b.name) return -1;
-                    if (a.name > b.name) return +1;
-                    return 0;
-                }
-            );
-            for(i=0; i<devices.length; i++) {
-                devices[i].state = assetSeverity (devices[i].id);
-            }
+            if(!active) return;
+            devices = navigation.selectedAssets ();
             showDevices ();
-        };
-
-        var onDCs = function (data) {
-            datacenters = [];
-            if (data.hasOwnProperty ("datacenters")) {
-                datacenters = data.datacenters;
-                if (datacenters.length) {
-                    selectedDC = 0;
-                } else {
-                    selectedDC = -1;
-                }
+            if (devices.length == 0) {
+                setTimeout (requestAllAssets, 1000);
+            } else {
+                updateAlertIcons ();
+                setTimeout (requestAllAssets, 5000);
             }
-            datacenters.sort (
-                function(a,b) {
-                    if (a.name < b.name) return -1;
-                    if (a.name > b.name) return +1;
-                    return 0;
-                }
-            );
-            // ask for DC devices
-            requestDevices ();
-        };
+        }
 
+        // ajax requests
         var onFilter = function () {
             showDevices ();
         };

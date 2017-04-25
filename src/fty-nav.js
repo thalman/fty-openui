@@ -1,10 +1,11 @@
-var datacenters = [];
-var selectedDC = -1;
-var requestedDC = null;
-
-var assets = {};
 
 var navigation = (function () {
+    var datacenters = [];
+    var selectedDC = -1;
+    var requestedDC = null;
+    var requestedDCAlerts = null;
+    var assets = {};
+    var alerts = {};
     var onNavigationCallback = null;
 
     var hide = function () { }
@@ -17,6 +18,8 @@ var navigation = (function () {
         $("#navbarSettings").click (function() { onClick ("#/settings"); });
         select ($(location).attr ('hash'));
         requestDCs ();
+        requestAlerts ();
+        requestAssets ();
     }
 
     var render = function () {
@@ -71,6 +74,18 @@ var navigation = (function () {
             return [ datacenters[selectedDC] ];
         }
         return datacenters;
+    }
+
+    var selectedAssets = function () {
+        var result = [];
+        var sdc = selectedDCs();
+        for (var dc in sdc) {
+            var set = assets [sdc [dc].id]
+            for (var i in set) {
+                result.push (set[i]);
+            }
+        }
+        return result;
     }
 
     var select = function (what) {
@@ -130,6 +145,55 @@ var navigation = (function () {
         $(".ftyDCSelector").click (onDCChange);
     }
 
+    var DCIdIndex = function (DC) {
+        for (var i in datacenters) {
+            if (datacenters[i].id == DC.id) return i;
+        }
+        return -1;
+    }
+
+    var severityToNumber = function (severity) {
+        switch (severity.toLowerCase ()) {
+        case "ok":
+            return 0;
+        case "warning":
+            return 1;
+        case "critical":
+            return 2;
+        default:
+            return -1;
+        }
+    }
+
+    var getAssetMaxSeverity = function (dcid, elementid) {
+        var severity = -1;
+
+        if (! alerts.hasOwnProperty(dcid)) return severity;
+
+        for (var i = 0; i < alerts [dcid].length; i++) {
+            if (alerts[dcid][i].element_id == elementid) {
+                var s = severityToNumber (alerts [dcid][i].severity);
+                if (s > severity) severity = s;
+                if (s >= 2) return s;
+            }
+        }
+        return severity;
+    }
+
+    var updateAssetStatuses = function () {
+        for (var dc = 0; dc < datacenters.length; dc++) {
+            var dcid = datacenters [dc].id;
+            if (assets.hasOwnProperty(dcid)) {
+                for (var dev = 0; dev < assets [dcid].length; dev++) {
+                    assets[dcid][dev].state = getAssetMaxSeverity (dcid, assets[dcid][dev].id);
+                }
+            }
+        }
+    }
+
+    var requestDCs = function () {
+        $.get ('/api/v1/asset/datacenters', null, onDCs);
+    }
     var onDCs = function (data) {
         var newdcs = [];
         if (data.hasOwnProperty ("datacenters")) {
@@ -150,20 +214,10 @@ var navigation = (function () {
         setTimeout (requestDCs, 10000);
     }
 
-    var requestDCs = function () {
-        $.get ('/api/v1/asset/datacenters', null, onDCs);
-    }
-
-    var DCIdIndex = function (DC) {
-        for (var i in datacenters) {
-            if (datacenters[i].id == DC.id) return i;
-        }
-        return -1;
-    }
-
-    var requestDevices = function () {
+    var requestAssets = function () {
         if (datacenters.length == 0) {
             requestedDC = null;
+            setTimeout (requestAssets, 1000);
             return;
         }
         if (selectedDC >=0) {
@@ -171,7 +225,7 @@ var navigation = (function () {
             $.get (
                 '/api/v1/assets',
                 { in: requestedDC.id, type: "device" },
-                onDevices);
+                onAssets);
         } else {
             if (requestedDC == null) {
                 requestedDC = datacenters[0];
@@ -183,10 +237,10 @@ var navigation = (function () {
             $.get (
                 '/api/v1/assets',
                 { in: requestedDC.id, type: "device" },
-                onDevices);
+                onAssets);
         }
     }
-    var onDevices = function (data) {
+    var onAssets = function (data) {
         devices = data;
         devices.sort (
             function(a,b) {
@@ -196,13 +250,49 @@ var navigation = (function () {
             }
         );
         assets [requestedDC.id] = devices;
-        setTimeout (requestDevices, 10000);
+        updateAssetStatuses ();
+        setTimeout (requestAssets, 10000);
+    }
+
+    var requestAlerts = function () {
+        if (datacenters.length == 0) {
+            requestedDCAlerts = null;
+            setTimeout (requestAlerts, 5000);
+            return;
+        }
+        if (requestedDCAlerts == null) {
+            requestedDCAlerts = datacenters[0];
+        } else {
+            var i = DCIdIndex (requestedDCAlerts) + 1;
+            if (i >= datacenters.length) i = 0;
+            requestedDCAlerts = datacenters [i];
+        }
+        $.get (
+            '/api/v1/alerts/activelist',
+            { state: 'ALL', recursive: true, asset: requestedDCAlerts.id },
+            onAlerts
+        );
+    }
+    var onAlerts = function (data) {
+        alerts [requestedDCAlerts.id] = data;
+        updateAssetStatuses ();
+        setTimeout (requestAlerts, 5000);
+    }
+    var allAlerts = function () {
+        var result = [];
+        for (var dc in datacenters) {
+            result.concat (datacenters [dc]);
+        }
+        return result;
     }
 
     return {
         show: show,
         hide: hide,
         render: render,
+        selectedDCs: selectedDCs,
+        selectedAssets: selectedAssets,
+        allAlerts: allAlerts,
         onNavigationClick, onNavigationClick,
     }
 })();
